@@ -50,6 +50,9 @@ class Put:
         option_value = max(self.strike - spot, 0.0) - self.premium
         return option_value
 
+class Stock:
+    def __init__(self, price_of_stock) -> None:
+        self.price_of_stock = price_of_stock
 
 class Order:
     def __init__(self, contract: Call | Put, quantity: int) -> None:
@@ -59,15 +62,28 @@ class Order:
     
     def order_pnl(self, position: str, underlying_price: int) -> dict[str, int | float]:
         # returns a hashmap of the pnl information about the order
-        premium = self.contract.premium
+        price = None    
+        if isinstance(self.contract, Call) or isinstance(self.contract, Put):
+            price = self.contract.strike
+        else:
+            price = self.contract.price_of_stock
+
         contract_value = None
         if isinstance(self.contract, Call):
-            contract_value = underlying_price - self.contract.strike
+            contract_value = underlying_price - price
         elif isinstance(self.contract, Put):
-            contract_value = self.contract.strike - underlying_price
-        
+            contract_value = price - underlying_price
+        elif isinstance(self.contract, Stock):
+            contract_value = underlying_price
+
         if contract_value <= 0:
             contract_value = 0
+
+        premium = None    
+        if isinstance(self.contract, Call) or isinstance(self.contract, Put):
+            premium = self.contract.premium
+        else:
+            premium = underlying_price
 
         contract_pnl = None
         if position == "Long":
@@ -75,6 +91,7 @@ class Order:
         elif position == "Short":
             contract_pnl = premium - contract_value
         
+
         pnl = {
             "Contract_Price": premium,
             "Contract_Value": contract_value, 
@@ -103,9 +120,14 @@ class Position:
         all_trades = self.longs + self.shorts
         strikes = []
         for order in all_trades:
-            strike_price = order.contract.strike
-            if strike_price not in strikes:
-                strikes.append(order.contract.strike)
+            price = None
+            if isinstance(order.contract, Call) or isinstance(order.contract, Put):
+                price = order.contract.strike
+            else:  # Stock
+                price = order.contract.price_of_stock
+
+            if price not in strikes:
+                strikes.append(price)
 
         return sorted(strikes)
 
@@ -113,24 +135,34 @@ class Position:
         # private
         # returns the slope of contract at the given price interval
         contract_type = order.contract
-        strike_price = order.contract.strike
+        price = None
+        if isinstance(contract_type, Call) or isinstance(contract_type, Put):
+            price = order.contract.strike
+        else:
+            price = order.contract.price_of_stock
+
         quantity = order.quantity
         lower_bound, upper_bound = interval[0], interval[1]
         slope = 0
         if isinstance(contract_type, Call):
-            if strike_price in range(lower_bound, upper_bound) or strike_price < lower_bound:
+            if price in range(lower_bound, upper_bound) or price < lower_bound:
                 if order in self.longs:
-                    slope += 1
+                    slope = 1
                 elif order in self.shorts:
-                    slope -= 1
+                    slope = -1
         
         elif isinstance(contract_type, Put):
-            if strike_price in range(lower_bound + 1, upper_bound + 1) or strike_price > upper_bound:
+            if price in range(lower_bound + 1, upper_bound + 1) or price > upper_bound:
                 if order in self.longs:
-                    slope -= 1
+                    slope = -1
                 elif order in self.shorts:
-                    slope += 1
-        
+                    slope = 1
+        else:
+            if order in self.longs:
+                slope = 1
+            elif order in self.shorts:
+                slope = -1
+
         return slope * quantity
     
     def _generate_position_intervals_list(self) -> list[int]:
@@ -184,7 +216,6 @@ class Position:
             for pair in order_row: 
                 total_slope_intvs_pairs[pair] += order_row[pair]
         
-        # print(total_slope_intvs_pairs)
         return total_slope_intvs_pairs
 
     def total_pnl(self, strike_price: int) -> float:
@@ -420,20 +451,24 @@ def iron_condor(p: Position) -> None:
     p.sell(Call(105, 1.0), 1)
     p.buy(Call(110, 0.5), 1)
 
+def straddle(p: Position) -> None:
+    p.buy(Call(100, 6.5), 1)
+    p.buy(Put(100, 6.5), 1)
+
+def covered_call(p: Position) -> None:
+    p.buy(Stock(95), 1)
+    p.sell(Call(95, 6.25), 1)
+
 if __name__ == "__main__":
     p = Position()
 
     iron_condor(p)
-    # p.buy(Call(95, 6.25), 1)    
-    # p.sell(Call(50, 1.0), 1)
-    # p.buy(Stock(85), 1)
+    # staddle(p)
+    # covered_call(p)
 
-
-    # p.buy(Call(100, 6.5), 1)
-    # p.buy(Put(100, 6.5), 1)
-
+    # most advanced test-suite in the world!
+    # print(p.total_slope_over_intervals())
     # print(p._pnl_for_strikes())
-    
     # p.generate_position_intervals()
     # total_slope = p.total_slope_over_intervals()
     # print(p.break_evens())
