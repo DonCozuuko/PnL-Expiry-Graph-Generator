@@ -1,4 +1,3 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import matplotlib.patches as mpatches
@@ -459,10 +458,10 @@ def covered_call(p: Position) -> None:
     p.buy(Stock(95), 1)
     p.sell(Call(95, 6.25), 1)
 
-if __name__ == "__main__":
-    p = Position()
+# if __name__ == "__main__":
+#     p = Position()
 
-    iron_condor(p)
+    # iron_condor(p)
     # staddle(p)
     # covered_call(p)
 
@@ -474,4 +473,4 @@ if __name__ == "__main__":
     # print(p.break_evens())
     # print(p.max_profit(), p.max_loss())
     # print(p.net_cost())
-    p.plot()
+    # p.plot()
