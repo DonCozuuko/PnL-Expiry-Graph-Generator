@@ -8,11 +8,13 @@ A python utility to generate P&L Expiry graphs for multi-leg option strategies, 
 - Y-Axis ticks are in 100's
 ## Demo
 - **Iron Condor on Waste Management -- Ticker $WM**
+
 ![long_iron_condor_csv](resources/long_iron_condor_csv.png)
 
 ![long_iron_condor_graph](resources/long_iron_condor_graph.png)
 
 - **Long Straddle on Tesla Automotive -- Ticker $TSLA**
+
 ![long_straddle_csv](resources/long_straddle_csv.png)
 
 ![long_straddle_graph](resources/long_straddle_graph.png)
@@ -29,6 +31,7 @@ $ pip install -r requirements.txt
 ## Usage
 1. Create an empty csv file, or override the example_order.csv file.
 2. Enter in your multi-leg option order in the position.csv file, with each row representing one leg in that order, and remember to save it.
+
 ![covered_call_csv](resources/covered_call_csv.png)
 3. Input the csv file that you want to use, full filename + type.
 ```
