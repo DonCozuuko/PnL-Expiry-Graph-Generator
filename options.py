@@ -1,6 +1,4 @@
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
-import matplotlib.patches as mpatches
 import math
 
 MIN_STRIKE = 0
