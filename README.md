@@ -33,6 +33,7 @@ $ pip install -r requirements.txt
 2. Enter in your multi-leg option order in the position.csv file, with each row representing one leg in that order, and remember to save it.
 
 ![covered_call_csv](resources/covered_call_csv.png)
+
 3. Input the csv file that you want to use, full filename + type.
 ```
 $ python gen_pnl.py
